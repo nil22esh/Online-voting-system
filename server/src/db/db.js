@@ -6,7 +6,7 @@ dotenv.config();
 
 // Create a connection pool
 // Pooling improves performance by reusing DB connections
-const pool = new Pool({
+export const pool = new Pool({
   user: process.env.DB_USER, // Database username
   host: process.env.DB_HOST, // Database host (e.g., localhost or AWS RDS)
   database: process.env.DB_NAME, // Database name
@@ -29,6 +29,15 @@ const connectDB = async () => {
     process.exit(1); // Exit app if DB connection fails (important for production)
   }
 };
+
+// Handle unexpected pool errors
+pool.on("error", (err) => {
+  logger.error("Unexpected PostgreSQL pool error", {
+    message: err.message,
+    stack: err.stack,
+  });
+  process.exit(1);
+});
 
 // Graceful shutdown
 // Ensures all DB connections are closed when app stops

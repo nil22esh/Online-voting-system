@@ -1,0 +1,241 @@
+/* Shared admin page styles */
+.candidate-avatar {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--accent-gradient);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.candidate-party {
+  font-size: 0.8125rem;
+  color: var(--accent-secondary);
+  font-weight: 500;
+}
+
+.candidate-img-small {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.candidate-mgmt-card {
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* ── Horizontal Row List ── */
+.candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.candidate-row-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg) !important;
+  border-radius: var(--radius-lg) !important;
+  transition: all var(--transition-fast);
+}
+
+.candidate-row-avatar {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.candidate-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.candidate-row-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.candidate-row-votes {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-right: var(--space-sm);
+}
+
+/* Photo Upload Section */
+.candidate-photo-upload-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-lg);
+}
+
+.photo-preview-container {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-lg);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.photo-preview-container:hover {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.photo-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.btn-icon {
+  padding: 8px;
+  min-width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+
+/* Candidate Form Grid Layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.candidate-form-scrollable {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: var(--space-sm);
+  margin-right: calc(-1 * var(--space-sm));
+}
+
+/* Hide scrollbar for cleaner look */
+.candidate-form-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.candidate-form-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.candidate-form-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.candidate-form-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.manifesto-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-danger-soft {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.btn-danger-soft:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
+/* Party Symbol Upload */
+.party-symbol-group .symbol-preview-container {
+  height: 42px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.symbol-preview-container:hover {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.symbol-preview-img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.symbol-preview-container .photo-placeholder {
+  flex-direction: row;
+  gap: var(--space-xs);
+}
+
+/* Select Dropdown Styling Fixes */
+select.form-input {
+  appearance: none;
+  background-color: var(--bg-card); /* Ensure it matches input dark background */
+  color: var(--text-primary);
+}
+
+select.form-input option {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}

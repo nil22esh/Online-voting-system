@@ -1,49 +1,38 @@
-// Import the Express app instance from app.js
+import http from "http"; 
 import app from "./app.js";
-// Import dotenv to load environment variables from .env file
 import dotenv from "dotenv";
 import logger from "./utils/logger.js";
 import connectDB from "./db/db.js";
+import { connectRedis } from "./config/redis.js";
+import { initializeSocket } from "./config/socket.js";
+import { voteWorker } from "./queues/vote.queue.js"; // Initialize worker
 
-// Load environment variables into process.env
+// Load environment variables
 dotenv.config();
 
-/**
- * Set the port for the server:
- * - Use PORT from environment variables if available
- * - Otherwise default to 8080
- */
 const port = process.env.PORT || 8080;
-
-/**
- * Set the environment:
- * - Use ENVIRONMENT from .env
- * - Default to 'development' if not provided
- */
 const env = process.env.ENVIRONMENT || "development";
 
-/**
- * Health Check Route
- * This endpoint is used to verify if the server is running properly
- * Commonly used in production monitoring and load balancers
- */
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    message: "OK", // Server status message
-    success: true, // Indicates request was successful
-    timestamp: new Date().toISOString(), // Better readable timestamp
-    environment: env, // Current environment (dev/prod)
-  });
-});
+// Create HTTP server (required for Socket.IO)
+const server = http.createServer(app);
 
-// Start Server ONLY after DB is connected
+// Initialize Socket.IO
+const io = initializeSocket(server);
+
+// Store io instance on app for use in controllers
+app.set("io", io);
+
+
+// Start Server after DB is connected
 const startServer = async () => {
   try {
-    // Connect to database
     await connectDB();
-    // Start server
-    app.listen(port, () => {
+    await connectRedis();
+
+    // Use server.listen instead of app.listen (for Socket.IO)
+    server.listen(port, () => {
       logger.info(`Server running on port ${port} in ${env} mode`);
+      logger.info(`WebSocket server ready`);
     });
   } catch (error) {
     logger.error("Failed to start server:", error);
@@ -51,5 +40,4 @@ const startServer = async () => {
   }
 };
 
-// Initialize server
 startServer();
