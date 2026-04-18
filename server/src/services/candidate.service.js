@@ -52,6 +52,7 @@ export const getCandidatesByElection = async (electionId) => {
   const query = `
     SELECT 
       c.*,
+      c.party_name as party,
       COALESCE((SELECT COUNT(*) FROM votes v WHERE v.candidate_id = c.id), 0) as vote_count
     FROM candidates c
     WHERE c.election_id = $1
