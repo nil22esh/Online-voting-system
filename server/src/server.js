@@ -1,9 +1,9 @@
-import http from "http"; 
+import http from "http";
 import app from "./app.js";
 import dotenv from "dotenv";
 import logger from "./utils/logger.js";
 import connectDB from "./db/db.js";
-import { connectRedis } from "./config/redis.js";
+import redisClient, { connectRedis } from "./config/redis.js";
 import { initializeSocket } from "./config/socket.js";
 import { voteWorker } from "./queues/vote.queue.js"; // Initialize worker
 
@@ -21,7 +21,6 @@ const io = initializeSocket(server);
 
 // Store io instance on app for use in controllers
 app.set("io", io);
-
 
 // Start Server after DB is connected
 const startServer = async () => {
