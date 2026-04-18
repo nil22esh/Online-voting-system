@@ -98,13 +98,13 @@ export const getElectionResults = async (electionId) => {
     SELECT 
       c.id as candidate_id,
       c.name as candidate_name,
-      c.party,
+      c.party_name as party,
       c.photo_url,
       COUNT(v.id)::INTEGER as vote_count
     FROM candidates c
     LEFT JOIN votes v ON v.candidate_id = c.id
     WHERE c.election_id = $1
-    GROUP BY c.id, c.name, c.party, c.photo_url
+    GROUP BY c.id, c.name, c.party_name, c.photo_url
     ORDER BY vote_count DESC
   `;
   const result = await pool.query(query, [electionId]);

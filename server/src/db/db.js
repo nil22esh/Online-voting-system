@@ -4,18 +4,31 @@ import logger from "../utils/logger.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Create a connection pool
+// Create a connection pool config supporting Supabase DATABASE_URL or local vars
+const poolConfig = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      // Supabase (and many production databases) requires SSL for remote connections
+      ssl: process.env.DATABASE_URL.includes("supabase") || process.env.NODE_ENV === "production"
+        ? { rejectUnauthorized: false }
+        : false,
+      max: 10, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 2000, // Timeout if connection takes too long
+    }
+  : {
+      user: process.env.DB_USER, // Database username
+      host: process.env.DB_HOST, // Database host
+      database: process.env.DB_NAME, // Database name
+      password: process.env.DB_PASSWORD, // Database password
+      port: Number(process.env.DB_PORT) || 5432, // Default PostgreSQL port
+      max: 10, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 2000, // Timeout if connection takes too long
+    };
+
 // Pooling improves performance by reusing DB connections
-export const pool = new Pool({
-  user: process.env.DB_USER, // Database username
-  host: process.env.DB_HOST, // Database host (e.g., localhost or AWS RDS)
-  database: process.env.DB_NAME, // Database name
-  password: process.env.DB_PASSWORD, // Database password
-  port: Number(process.env.DB_PORT) || 5432, // Default PostgreSQL port
-  max: 10, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Timeout if connection takes too long
-});
+export const pool = new Pool(poolConfig);
 
 // Test database connection at startup
 // This ensures DB is reachable before app starts serving requests

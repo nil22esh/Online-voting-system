@@ -17,7 +17,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { HiOutlineCheck, HiOutlineBan, HiOutlineShieldCheck, HiOutlineKey } from "react-icons/hi";
+import { HiOutlineCheck, HiOutlineBan, HiOutlineShieldCheck, HiOutlineKey, HiOutlineInformationCircle, HiOutlineExternalLink, HiOutlineUsers, HiOutlineAcademicCap, HiOutlineBriefcase, HiOutlineGlobeAlt, HiOutlineX } from "react-icons/hi";
 import "./VotingPage.css";
 import defaultAvatar from "../assets/default-avatar.png";
 
@@ -46,6 +46,7 @@ export default function VotingPage() {
   const [voting, setVoting] = useState(false);
   const [requestingOTP, setRequestingOTP] = useState(false);
   const [voteStatus, setVoteStatus] = useState("none"); // none, pending, confirmed
+  const [viewingCandidate, setViewingCandidate] = useState(null);
 
 
 
@@ -210,11 +211,21 @@ export default function VotingPage() {
                   </div>
                   <div className="candidate-details-v2">
                     <h3 className="candidate-name-v2">{candidate.name}</h3>
-                    <span className="candidate-party-v2">{candidate.party}</span>
+                    <span className="candidate-party-v2">{candidate.party_name || candidate.party || "Independent"}</span>
                   </div>
                   {canVote && (
                     <div className={`vote-radio ${selectedCandidate === candidate.id ? "active" : ""}`} />
                   )}
+                  <button 
+                    className="view-details-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewingCandidate(candidate);
+                    }}
+                    title="View Candidate Details"
+                  >
+                    <HiOutlineInformationCircle />
+                  </button>
                 </motion.div>
               ))}
             </div>
@@ -358,6 +369,104 @@ export default function VotingPage() {
                 )}
               </motion.div>
 
+            </div>
+          )}
+
+          {viewingCandidate && (
+            <div className="modal-overlay" onClick={() => setViewingCandidate(null)}>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                className="modal-content candidate-details-modal" 
+                onClick={e => e.stopPropagation()}
+              >
+                <button className="modal-close-btn" onClick={() => setViewingCandidate(null)}>
+                  <HiOutlineX />
+                </button>
+
+                <div className="candidate-modal-header">
+                  <div className="candidate-modal-avatar-wrap">
+                    <img 
+                      src={viewingCandidate.photo_url || defaultAvatar} 
+                      alt={viewingCandidate.name} 
+                      className="candidate-modal-avatar"
+                    />
+                    {viewingCandidate.party_symbol && (
+                      <div className="candidate-modal-party-symbol">
+                        <img src={viewingCandidate.party_symbol} alt="Party Symbol" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="candidate-modal-title-info">
+                    <h2 className="candidate-modal-name">{viewingCandidate.name}</h2>
+                    <div className="candidate-modal-badges">
+                      <span className="candidate-modal-party-badge">
+                        <HiOutlineUsers className="mr-xs" /> {viewingCandidate.party_name}
+                      </span>
+                      <span className="candidate-modal-age-badge">
+                        {viewingCandidate.age} Years • {viewingCandidate.gender}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="candidate-modal-body">
+                  <div className="candidate-modal-section">
+                    <h3 className="section-title"><HiOutlineInformationCircle className="mr-xs" /> Biography</h3>
+                    <p className="section-text">{viewingCandidate.bio || "No biography available."}</p>
+                  </div>
+
+                  <div className="candidate-modal-info-grid">
+                    <div className="info-item">
+                      <div className="info-icon-wrap"><HiOutlineAcademicCap /></div>
+                      <div>
+                        <label>Education</label>
+                        <span>{viewingCandidate.education || "N/A"}</span>
+                      </div>
+                    </div>
+                    <div className="info-item">
+                      <div className="info-icon-wrap"><HiOutlineBriefcase /></div>
+                      <div>
+                        <label>Profession</label>
+                        <span>{viewingCandidate.profession || "N/A"}</span>
+                      </div>
+                    </div>
+                    <div className="info-item">
+                      <div className="info-icon-wrap"><HiOutlineGlobeAlt /></div>
+                      <div>
+                        <label>Experience</label>
+                        <span>{viewingCandidate.experience_years ? `${viewingCandidate.experience_years} Years` : "N/A"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {viewingCandidate.manifesto && viewingCandidate.manifesto.length > 0 && (
+                    <div className="candidate-modal-section">
+                      <h3 className="section-title">📜 Manifesto Points</h3>
+                      <ul className="manifesto-list">
+                        {(Array.isArray(viewingCandidate.manifesto) ? viewingCandidate.manifesto : JSON.parse(viewingCandidate.manifesto || "[]")).map((point, idx) => (
+                          <li key={idx}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {viewingCandidate.social_links && Object.keys(viewingCandidate.social_links).length > 0 && (
+                    <div className="candidate-modal-section">
+                      <h3 className="section-title">Connect</h3>
+                      <div className="social-links-grid">
+                        {Object.entries(viewingCandidate.social_links).map(([platform, url]) => (
+                          <a key={platform} href={url} target="_blank" rel="noopener noreferrer" className="social-link-item">
+                            <span className="capitalize">{platform}</span>
+                            <HiOutlineExternalLink />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             </div>
           )}
         </AnimatePresence>
