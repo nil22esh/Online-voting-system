@@ -3,7 +3,11 @@ import logger from "../utils/logger.js";
 import config from "./config.js";
 
 const redisClient = createClient({
-  url: config.redis?.url || "redis://localhost:6379",
+  url: config.redis.url,
+  socket: {
+    tls: true,
+    rejectUnauthorized: false,
+  },
 });
 
 redisClient.on("error", (err) => logger.error("Redis Client Error", err));

@@ -35,4 +35,7 @@ export default {
     pass: process.env.SMTP_PASS,
     from: process.env.SMTP_FROM || '"Online Voting System" <noreply@ovs.com>',
   },
+  redis: {
+    url: process.env.REDIS_URL || "redis://localhost:6379",
+  },
 };
