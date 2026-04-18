@@ -1,0 +1,215 @@
+.election-meta {
+  display: flex;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.vote-status-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  background: var(--success-bg) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.vote-status-icon {
+  font-size: 1.75rem;
+  color: var(--success);
+  min-width: 28px;
+}
+
+.vote-status-banner strong {
+  color: var(--success);
+}
+
+.vote-status-banner p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.voting-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.voting-grid.full-width {
+  grid-template-columns: 1fr;
+}
+
+/* Candidates */
+.voting-candidates h2 {
+  margin-bottom: var(--space-xl);
+}
+
+.candidates-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.candidate-card-v2 {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg) !important;
+  border-radius: var(--radius-lg) !important;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.candidate-card-v2.selected {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), var(--shadow-glow);
+  background: rgba(99, 102, 241, 0.06) !important;
+}
+
+/* Circle avatar for horizontal card */
+.candidate-avatar-circle-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.candidate-avatar-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+  display: block;
+}
+
+.candidate-details-v2 {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.candidate-name-v2 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.candidate-party-v2 {
+  font-size: 0.75rem;
+  color: var(--accent-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Radio dot indicator when voting */
+.vote-radio {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border-glass);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.vote-radio.active {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.vote-radio.active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: white;
+}
+
+.selection-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  background: var(--accent-primary);
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border: 2px solid var(--bg-card);
+  z-index: 2;
+}
+
+/* Live Results */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--error);
+  margin-left: var(--space-sm);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.results-chart-container {
+  height: 360px;
+  width: 100%;
+}
+
+.badge-level {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass);
+}
+
+.shield-icon {
+  font-size: 3rem;
+  color: var(--accent-primary);
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-md);
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
+}
+
+.otp-input-wrapper {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.otp-field {
+  flex: 1;
+  text-align: center;
+  font-family: monospace;
+  font-size: 1.25rem;
+  letter-spacing: 0.25rem;
+  font-weight: 700;
+}
+
+.otp-field::placeholder {
+  letter-spacing: normal;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 400;
+}
