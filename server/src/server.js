@@ -10,6 +10,10 @@ import { voteWorker } from "./queues/vote.queue.js"; // Initialize worker
 // Load environment variables
 dotenv.config();
 
+console.log("ENV CHECK:-----", {
+  DB: process.env.DATABASE_URL,
+  REDIS: process.env.REDIS_URL,
+});
 const port = process.env.PORT || 8080;
 const env = process.env.ENVIRONMENT || "development";
 
