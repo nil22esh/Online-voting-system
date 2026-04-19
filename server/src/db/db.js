@@ -1,64 +1,98 @@
 // Import PostgreSQL client
 import { Pool } from "pg";
 import logger from "../utils/logger.js";
-import dotenv from "dotenv";
-dotenv.config();
 
-// Create a connection pool config supporting Supabase DATABASE_URL or local vars
-const poolConfig = process.env.DATABASE_URL
-  ? {
-      connectionString: process.env.DATABASE_URL,
-      // Supabase (and many production databases) requires SSL for remote connections
-      ssl: process.env.DATABASE_URL.includes("supabase") || process.env.NODE_ENV === "production"
+// Build pool config from DATABASE_URL or individual env vars
+const getPoolConfig = () => {
+  const dbUrl = process.env.DATABASE_URL;
+
+  if (dbUrl) {
+    // Determine if SSL is needed (Supabase always requires SSL)
+    const requireSSL =
+      dbUrl.includes("supabase") ||
+      dbUrl.includes("pooler.supabase") ||
+      process.env.NODE_ENV === "production";
+
+    return {
+      connectionString: dbUrl,
+      ssl: requireSSL ? { rejectUnauthorized: false } : false,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000, // Increased from 2s → 10s for Supabase cold starts
+    };
+  }
+
+  // Fallback: individual env vars
+  return {
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: Number(process.env.DB_PORT) || 5432,
+    ssl:
+      process.env.NODE_ENV === "production"
         ? { rejectUnauthorized: false }
         : false,
-      max: 10, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 2000, // Timeout if connection takes too long
-    }
-  : {
-      user: process.env.DB_USER, // Database username
-      host: process.env.DB_HOST, // Database host
-      database: process.env.DB_NAME, // Database name
-      password: process.env.DB_PASSWORD, // Database password
-      port: Number(process.env.DB_PORT) || 5432, // Default PostgreSQL port
-      max: 10, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 2000, // Timeout if connection takes too long
-    };
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  };
+};
 
-// Pooling improves performance by reusing DB connections
-export const pool = new Pool(poolConfig);
+export const pool = new Pool(getPoolConfig());
 
 // Test database connection at startup
-// This ensures DB is reachable before app starts serving requests
 const connectDB = async () => {
+  const config = getPoolConfig();
+
+  // Log which connection mode is being used (without exposing credentials)
+  if (process.env.DATABASE_URL) {
+    const url = new URL(process.env.DATABASE_URL);
+    logger.info(`Connecting to PostgreSQL at ${url.host}${url.pathname}`, {
+      ssl: !!config.ssl,
+    });
+  } else {
+    logger.info(
+      `Connecting to PostgreSQL at ${config.host}:${config.port}/${config.database}`,
+    );
+  }
+
   try {
     const client = await pool.connect();
-    logger.info("Connected to PostgreSQL");
-    client.release(); // Release client back to pool
+    logger.info("Connected to PostgreSQL successfully");
+    client.release();
   } catch (err) {
-    logger.error("PostgreSQL connection error:", err.message);
-    process.exit(1); // Exit app if DB connection fails (important for production)
+    // Log the full error for debugging, not just err.message
+    logger.error("PostgreSQL connection error", {
+      message: err.message,
+      code: err.code, // e.g. ECONNREFUSED, ETIMEDOUT, 28P01 (wrong password)
+      stack: err.stack,
+    });
+    process.exit(1);
   }
 };
 
-// Handle unexpected pool errors
+// Handle unexpected pool errors (e.g. connection dropped mid-use)
 pool.on("error", (err) => {
   logger.error("Unexpected PostgreSQL pool error", {
     message: err.message,
+    code: err.code,
     stack: err.stack,
   });
   process.exit(1);
 });
 
-// Graceful shutdown
-// Ensures all DB connections are closed when app stops
+// Graceful shutdown — close all connections before process exits
 process.on("SIGINT", async () => {
   logger.info("Shutting down PostgreSQL pool...");
   await pool.end();
   process.exit(0);
 });
 
-// Export pool to use in queries
+process.on("SIGTERM", async () => {
+  logger.info("Shutting down PostgreSQL pool (SIGTERM)...");
+  await pool.end();
+  process.exit(0);
+});
+
 export default connectDB;
