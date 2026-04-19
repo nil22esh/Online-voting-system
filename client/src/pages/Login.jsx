@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineShieldCheck, HiOutlineMail, HiOutlineLockClosed } from "react-icons/hi";
+import { FaGoogle } from "react-icons/fa";
 import "./Auth.css";
 
 export default function Login() {
@@ -9,8 +10,17 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Handle errors returned by Google OAuth callback redirect
+  useEffect(() => {
+    const oauthError = searchParams.get("error");
+    if (oauthError === "google_auth_failed") setError("Google sign-in was cancelled or failed. Please try again.");
+    if (oauthError === "google_no_email") setError("Could not retrieve your email from Google. Please use email/password login.");
+    if (oauthError === "account_deactivated") setError("Your account has been deactivated. Please contact support.");
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +46,21 @@ export default function Login() {
           </div>
           <h1 className="auth-title">Welcome Back</h1>
           <p className="auth-subtitle">Sign in to your VoteSecure account</p>
+        </div>
+
+        {/* Google Sign-in Button */}
+        <button
+          type="button"
+          id="google-signin-btn"
+          className="btn-google"
+          onClick={googleLogin}
+        >
+          <FaGoogle className="btn-google-icon" />
+          Continue with Google
+        </button>
+
+        <div className="auth-divider">
+          <span>or sign in with email</span>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">

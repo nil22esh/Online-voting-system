@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useState } from "react";
-import { getMe, loginUser, registerUser, logoutUser } from "../api/auth.api";
+import { getMe, loginUser, registerUser, logoutUser, googleLogin as googleLoginRedirect } from "../api/auth.api";
 
 const AuthContext = createContext(null);
 
@@ -101,6 +101,10 @@ export function AuthProvider({ children }) {
     setToast({ type, message });
   };
 
+  const googleLogin = () => {
+    googleLoginRedirect();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -108,6 +112,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        googleLogin,
         toast,
         setToast,
         showToast,

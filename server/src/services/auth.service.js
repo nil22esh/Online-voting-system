@@ -120,6 +120,63 @@ export const getAllUsers = async () => {
 };
 
 // =============================================
+// GOOGLE OAUTH OPERATIONS
+// =============================================
+
+/**
+ * Find user by Google ID
+ */
+export const findUserByGoogleId = async (googleId) => {
+  const query = `
+    SELECT id, name, email, role, phone_number, aadhar_number, 
+           is_active, is_verified, google_id, avatar_url, created_at
+    FROM users
+    WHERE google_id = $1
+  `;
+  const result = await pool.query(query, [googleId]);
+  return result.rows[0];
+};
+
+/**
+ * Create a new user via Google OAuth (no password/Aadhar required)
+ */
+export const createGoogleUser = async (name, email, googleId, avatarUrl) => {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const query = `
+    INSERT INTO users (name, email, google_id, avatar_url, role, is_verified)
+    VALUES ($1, $2, $3, $4, 'voter', false)
+    RETURNING id, name, email, role, phone_number, aadhar_number,
+              is_active, is_verified, google_id, avatar_url, created_at
+  `;
+
+  try {
+    const result = await pool.query(query, [name, normalizedEmail, googleId, avatarUrl]);
+    return result.rows[0];
+  } catch (error) {
+    if (error.code === "23505") {
+      throw new Error("Email already exists");
+    }
+    throw error;
+  }
+};
+
+/**
+ * Link a Google account to an existing user (matched by email)
+ */
+export const linkGoogleAccount = async (userId, googleId, avatarUrl) => {
+  const query = `
+    UPDATE users
+    SET google_id = $2, avatar_url = COALESCE(avatar_url, $3)
+    WHERE id = $1
+    RETURNING id, name, email, role, phone_number, aadhar_number,
+              is_active, is_verified, google_id, avatar_url, created_at
+  `;
+  const result = await pool.query(query, [userId, googleId, avatarUrl]);
+  return result.rows[0];
+};
+
+// =============================================
 // REFRESH TOKEN OPERATIONS
 // =============================================
 

@@ -11,6 +11,8 @@ import {
   refreshAccessToken,
   getMe,
   verifyUserEmail,
+  googleAuthRedirect,
+  googleCallback,
 } from "../controllers/auth.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
@@ -27,5 +29,9 @@ authRouter.get("/verify-email/:token", verifyUserEmail);
 // Protected routes
 authRouter.post("/logout", authenticate, logout);
 authRouter.get("/me", authenticate, getMe);
+
+// Google OAuth routes
+authRouter.get("/google", googleAuthRedirect);
+authRouter.get("/google/callback", googleCallback);
 
 export default authRouter;

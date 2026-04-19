@@ -106,6 +106,11 @@ function App() {
             />
 
             {/* Default redirect */}
+            <Route path="/complete-profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>

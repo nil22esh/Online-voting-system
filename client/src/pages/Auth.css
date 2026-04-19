@@ -95,3 +95,93 @@
 .input-with-icon .form-input {
   padding-left: 40px;
 }
+
+/* ============================================
+   Google OAuth Button
+   ============================================ */
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  margin-bottom: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-google::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(234, 67, 53, 0.08), rgba(66, 133, 244, 0.08));
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.btn-google:hover {
+  border-color: rgba(234, 67, 53, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(234, 67, 53, 0.15);
+}
+
+.btn-google:hover::before {
+  opacity: 1;
+}
+
+.btn-google:active {
+  transform: translateY(0);
+}
+
+.btn-google-icon {
+  font-size: 1.125rem;
+  color: #EA4335;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-google span,
+.btn-google > *:not(.btn-google-icon) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   Auth Form Divider
+   ============================================ */
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-glass);
+}
+
+.auth-divider span {
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}

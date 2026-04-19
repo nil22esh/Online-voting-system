@@ -13,7 +13,15 @@ import {
   deleteAllUserRefreshTokens,
   findUserByVerificationToken,
   updateUserVerificationStatus,
+  findUserByGoogleId,
+  createGoogleUser,
+  linkGoogleAccount,
 } from "../services/auth.service.js";
+import {
+  getGoogleAuthUrl,
+  exchangeCodeForTokens,
+  getGoogleProfile,
+} from "../utils/google.utils.js";
 import { successResponse } from "../utils/response.js";
 import ApiError from "../utils/ApiError.js";
 import {
@@ -242,4 +250,81 @@ export const getMe = asyncHandler(async (req, res) => {
   }
 
   return successResponse(res, user, "User profile fetched successfully", 200);
+});
+
+/**
+ * Initiate Google OAuth flow
+ * GET /api/v1/auth/google
+ */
+export const googleAuthRedirect = asyncHandler(async (req, res) => {
+  const url = getGoogleAuthUrl();
+  res.redirect(url);
+});
+
+/**
+ * Handle Google OAuth callback
+ * GET /api/v1/auth/google/callback
+ */
+export const googleCallback = asyncHandler(async (req, res) => {
+  const { code, error } = req.query;
+
+  // User denied access or Google returned an error
+  if (error || !code) {
+    return res.redirect(
+      `${config.frontendUrl}/login?error=google_auth_failed`
+    );
+  }
+
+  // 1. Exchange code for tokens
+  const tokens = await exchangeCodeForTokens(code);
+
+  // 2. Fetch Google profile
+  const profile = await getGoogleProfile(tokens.access_token);
+
+  const { id: googleId, email, name, picture: avatarUrl } = profile;
+
+  if (!email) {
+    return res.redirect(
+      `${config.frontendUrl}/login?error=google_no_email`
+    );
+  }
+
+  // 3. Try to find existing user by google_id
+  let user = await findUserByGoogleId(googleId);
+
+  if (!user) {
+    // 4. Try to find by email (existing account — link it)
+    const existingUser = await findUserByEmail(email);
+
+    if (existingUser) {
+      // Link Google account to the existing user
+      user = await linkGoogleAccount(existingUser.id, googleId, avatarUrl);
+    } else {
+      // 5. Brand-new user — create a Google-linked account
+      user = await createGoogleUser(name, email, googleId, avatarUrl);
+    }
+  }
+
+  // Check if account is active
+  if (!user.is_active) {
+    return res.redirect(
+      `${config.frontendUrl}/login?error=account_deactivated`
+    );
+  }
+
+  // 6. Issue our own JWT cookies (same flow as email/password login)
+  const tokenPayload = { id: user.id, email: user.email, role: user.role };
+  const accessToken = generateAccessToken(tokenPayload);
+  const refreshToken = generateRefreshToken(tokenPayload);
+
+  const expiresAt = new Date(Date.now() + config.jwt.refreshExpiryMs);
+  await saveRefreshToken(user.id, refreshToken, expiresAt);
+
+  setAuthCookies(res, accessToken, refreshToken);
+
+  // 7. Redirect to dashboard (or complete-profile if Aadhar is missing)
+  const destination =
+    user.aadhar_number ? "/dashboard" : "/complete-profile";
+
+  return res.redirect(`${config.frontendUrl}${destination}`);
 });

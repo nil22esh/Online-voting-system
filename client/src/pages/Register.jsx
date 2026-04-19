@@ -9,6 +9,7 @@ import {
   HiOutlinePhone,
   HiOutlineIdentification,
 } from "react-icons/hi";
+import { FaGoogle } from "react-icons/fa";
 import "./Auth.css";
 
 export default function Register() {
@@ -22,7 +23,7 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -64,6 +65,21 @@ export default function Register() {
           </div>
           <h1 className="auth-title">Create Account</h1>
           <p className="auth-subtitle">Join VoteSecure and start voting</p>
+        </div>
+
+        {/* Google Sign-up Button */}
+        <button
+          type="button"
+          id="google-signup-btn"
+          className="btn-google"
+          onClick={googleLogin}
+        >
+          <FaGoogle className="btn-google-icon" />
+          Continue with Google
+        </button>
+
+        <div className="auth-divider">
+          <span>or register with email</span>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
