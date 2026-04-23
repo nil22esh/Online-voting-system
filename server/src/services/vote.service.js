@@ -150,3 +150,34 @@ export const getTotalVotes = async (electionId) => {
   const result = await pool.query(query, [electionId]);
   return parseInt(result.rows[0].total);
 };
+
+/**
+ * Get the winner(s) of a completed election
+ * Returns array — multiple entries if there is a tie
+ */
+export const getElectionWinner = async (electionId) => {
+  const query = `
+    WITH vote_counts AS (
+      SELECT 
+        c.id as candidate_id,
+        c.name as candidate_name,
+        c.party_name,
+        c.photo_url,
+        COUNT(v.id)::INTEGER as vote_count
+      FROM candidates c
+      LEFT JOIN votes v ON v.candidate_id = c.id
+      WHERE c.election_id = $1
+      GROUP BY c.id, c.name, c.party_name, c.photo_url
+    ),
+    max_votes AS (
+      SELECT MAX(vote_count) as max_count FROM vote_counts
+    )
+    SELECT vc.*, mv.max_count,
+      ROUND(vc.vote_count * 100.0 / NULLIF((SELECT COUNT(*) FROM votes WHERE election_id = $1), 0), 1) as vote_percentage
+    FROM vote_counts vc, max_votes mv
+    WHERE vc.vote_count = mv.max_count
+    ORDER BY vc.candidate_name
+  `;
+  const result = await pool.query(query, [electionId]);
+  return result.rows;
+};

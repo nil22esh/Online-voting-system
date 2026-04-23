@@ -6,14 +6,16 @@ import connectDB from "./db/db.js";
 import redisClient, { connectRedis } from "./config/redis.js";
 import { initializeSocket } from "./config/socket.js";
 import { voteWorker } from "./queues/vote.queue.js"; // Initialize worker
+import { updateElectionStatuses } from "./services/election.service.js";
 
 // Load environment variables
 dotenv.config();
 
-console.log("ENV CHECK:-----", {
-  DB: process.env.DATABASE_URL,
-  REDIS: process.env.REDIS_URL,
-});
+co /
+  nsole.log("ENV CHECK:-----", {
+    DB: process.env.DATABASE_URL,
+    REDIS: process.env.REDIS_URL,
+  });
 const port = process.env.PORT || 8080;
 const env = process.env.ENVIRONMENT || "development";
 
@@ -37,6 +39,22 @@ const startServer = async () => {
       logger.info(`Server running on port ${port} in ${env} mode`);
       logger.info(`WebSocket server ready`);
     });
+
+    // ── Auto Election Status Scheduler ──────────────────────────────────
+    // Runs every 60 seconds to flip upcoming→active and active→completed
+    const runStatusUpdate = async () => {
+      try {
+        await updateElectionStatuses();
+        // Invalidate the elections cache so fresh data is served
+        await redisClient.del("elections:all");
+        logger.info("[Scheduler] Election statuses updated");
+      } catch (err) {
+        logger.error("[Scheduler] Failed to update election statuses:", err);
+      }
+    };
+    // Run once immediately on startup, then every 60 seconds
+    runStatusUpdate();
+    setInterval(runStatusUpdate, 60 * 1000);
   } catch (error) {
     logger.error("Failed to start server:", error);
     process.exit(1);

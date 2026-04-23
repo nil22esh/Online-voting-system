@@ -69,6 +69,13 @@
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
+/* Active countdowns shown in red */
+.election-card-timer.timer-active {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
 .election-card-timer strong {
   font-family: monospace;
   font-size: 1rem;
@@ -82,4 +89,44 @@
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
+}
+
+/* ── Ended election cards get a subtle gold accent ── */
+.election-card-ended {
+  border-color: rgba(251, 191, 36, 0.12) !important;
+}
+
+.election-card-ended::before {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b) !important;
+}
+
+.election-card-ended-note {
+  font-size: 0.8rem;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.07);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.75rem;
+  margin-bottom: var(--space-md);
+  font-weight: 600;
+}
+
+/* ── Completed elections section header ── */
+.completed-elections-section h2 {
+  color: var(--text-secondary);
+}
+
+/* ── Dashboard sections ── */
+.dashboard-section {
+  margin-bottom: var(--space-3xl);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
 }

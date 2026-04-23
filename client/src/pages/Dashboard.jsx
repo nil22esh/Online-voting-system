@@ -12,6 +12,7 @@ import {
   HiOutlineChartBar,
   HiOutlineCheck,
 } from "react-icons/hi";
+import { computeElectionStatus } from "../utils/electionStatus";
 import "./Dashboard.css";
 
 export default function Dashboard() {
@@ -30,13 +31,14 @@ export default function Dashboard() {
   useEffect(() => {
     if (socket) {
       socket.on("vote:global_update", (data) => {
-        setElections(prev => prev.map(e => {
-          if (e.id === data.electionId) {
-            return { ...e, total_votes: data.totalVotes };
-          }
-          return e;
-        }));
-        
+        setElections((prev) =>
+          prev.map((e) => {
+            if (e.id === data.electionId) {
+              return { ...e, total_votes: data.totalVotes };
+            }
+            return e;
+          })
+        );
         // Trigger pulse animation
         setLivePulse(true);
         setTimeout(() => setLivePulse(false), 1000);
@@ -59,21 +61,31 @@ export default function Dashboard() {
     }
   };
 
-  const activeElections = elections.filter((e) => e.status === "active");
-  const upcomingElections = elections.filter((e) => e.status === "upcoming");
-  const completedElections = elections.filter((e) => e.status === "completed");
-  const totalVotes = elections.reduce(
-    (sum, e) => sum + parseInt(e.total_votes || 0),
-    0,
-  );
+  // Derive status from dates (client-side) for live accuracy
+  const withDerivedStatus = elections.map((e) => ({
+    ...e,
+    _derivedStatus: computeElectionStatus(e),
+  }));
+
+  const activeElections = withDerivedStatus.filter((e) => e._derivedStatus === "active");
+  const upcomingElections = withDerivedStatus.filter((e) => e._derivedStatus === "upcoming");
+  const completedElections = withDerivedStatus.filter((e) => e._derivedStatus === "completed");
+  const cancelledElections = withDerivedStatus.filter((e) => e._derivedStatus === "cancelled");
+
+  const totalVotes = elections.reduce((sum, e) => sum + parseInt(e.total_votes || 0), 0);
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "active": return <span className="badge badge-active">Active</span>;
-      case "upcoming": return <span className="badge badge-upcoming">Upcoming</span>;
-      case "completed": return <span className="badge badge-completed">Completed</span>;
-      case "cancelled": return <span className="badge badge-cancelled">Cancelled</span>;
-      default: return null;
+      case "active":
+        return <span className="badge badge-active">🟢 Active</span>;
+      case "upcoming":
+        return <span className="badge badge-upcoming">🔵 Upcoming</span>;
+      case "completed":
+        return <span className="badge badge-completed">⚫ Ended</span>;
+      case "cancelled":
+        return <span className="badge badge-cancelled">🔴 Cancelled</span>;
+      default:
+        return null;
     }
   };
 
@@ -85,12 +97,10 @@ export default function Dashboard() {
           <h1 className="page-title">
             {t("WelcomeBack", { name: user?.name?.split(" ")[0] })}
           </h1>
-          <p className="page-subtitle">
-            {t("DashboardSubtitle")}
-          </p>
+          <p className="page-subtitle">{t("DashboardSubtitle")}</p>
         </div>
 
-        {/* Stats Cards */}
+        {/* ── Stats Cards ── */}
         <div className="grid grid-4 mb-lg">
           <div className="glass-card stat-card animate-slideUp">
             <div className="stat-card-icon">
@@ -99,43 +109,61 @@ export default function Dashboard() {
             <div className="stat-card-value">{elections.length}</div>
             <div className="stat-card-label">{t("TotalElections")}</div>
           </div>
-          <div className="glass-card stat-card animate-slideUp" style={{ animationDelay: "0.1s" }}>
-            <div className="stat-card-icon" style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
+          <div
+            className="glass-card stat-card animate-slideUp"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <div
+              className="stat-card-icon"
+              style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+            >
               <HiOutlineCheck />
             </div>
             <div className="stat-card-value">{activeElections.length}</div>
             <div className="stat-card-label">{t("ActiveElections")}</div>
           </div>
-          <div className="glass-card stat-card animate-slideUp" style={{ animationDelay: "0.2s" }}>
-            <div className="stat-card-icon" style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}>
+          <div
+            className="glass-card stat-card animate-slideUp"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div
+              className="stat-card-icon"
+              style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}
+            >
               <HiOutlineUserGroup />
             </div>
             <div className="stat-card-value">{upcomingElections.length}</div>
             <div className="stat-card-label">{t("Upcoming")}</div>
           </div>
-          <div className={`glass-card stat-card animate-slideUp ${livePulse ? 'live-pulse' : ''}`} style={{ animationDelay: "0.3s", transition: 'transform 0.3s' }}>
-            <div className="stat-card-icon" style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
+          <div
+            className={`glass-card stat-card animate-slideUp ${livePulse ? "live-pulse" : ""}`}
+            style={{ animationDelay: "0.3s", transition: "transform 0.3s" }}
+          >
+            <div
+              className="stat-card-icon"
+              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}
+            >
               <HiOutlineChartBar />
             </div>
-            <div className="stat-card-value">{totalVotes}</div>
+            <div className="stat-card-value">{totalVotes.toLocaleString()}</div>
             <div className="stat-card-label flex items-center justify-between">
               {t("TotalVotesCast")}
-              {socket && <span className="live-dot" title="Live Updates Active"></span>}
+              {socket && <span className="live-dot" title="Live Updates Active" />}
             </div>
           </div>
         </div>
 
-        {/* Active Elections */}
         {loading ? (
           <div className="loading-container">
-            <div className="spinner"></div>
+            <div className="spinner" />
             <p>Loading elections...</p>
           </div>
         ) : (
           <>
+            {/* ── Active Elections ── */}
             {activeElections.length > 0 && (
-              <section className="mb-lg">
-                <h2 style={{ marginBottom: "var(--space-lg)", display: 'flex', alignItems: 'center' }}>
+              <section className="dashboard-section">
+                <h2 className="section-heading">
                   🗳️ {t("ActiveElections")}
                   <span className="live-badge ml-md">LIVE</span>
                 </h2>
@@ -147,15 +175,50 @@ export default function Dashboard() {
               </section>
             )}
 
-            {/* All Elections Table */}
-            <section>
-              <h2 style={{ marginBottom: "var(--space-lg)" }}>
-                📋 {t("AllElections")}
-              </h2>
+            {/* ── Upcoming Elections ── */}
+            {upcomingElections.length > 0 && (
+              <section className="dashboard-section">
+                <h2 className="section-heading">🗓️ {t("Upcoming")}</h2>
+                <div className="grid grid-3">
+                  {upcomingElections.map((election) => (
+                    <ElectionCard key={election.id} election={election} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── Completed Elections ── */}
+            {completedElections.length > 0 && (
+              <section className="dashboard-section completed-elections-section">
+                <h2 className="section-heading" style={{ color: "var(--text-secondary)" }}>
+                  🏆 Ended Elections
+                  <span
+                    style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 500,
+                      color: "var(--text-muted)",
+                      marginLeft: "var(--space-sm)",
+                    }}
+                  >
+                    — Click to see results & winner
+                  </span>
+                </h2>
+                <div className="grid grid-3">
+                  {completedElections.map((election) => (
+                    <ElectionCard key={election.id} election={election} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── All Elections Table ── */}
+            <section className="dashboard-section">
+              <h2 className="section-heading">📋 {t("AllElections")}</h2>
               {elections.length === 0 ? (
                 <div className="glass-card text-center" style={{ padding: "3rem" }}>
                   <p style={{ color: "var(--text-secondary)", fontSize: "1.125rem" }}>
-                    No elections yet. {(user?.role === "admin" || user?.role === "officer")
+                    No elections yet.{" "}
+                    {user?.role === "admin" || user?.role === "officer"
                       ? "Create your first election!"
                       : "Check back soon!"}
                   </p>
@@ -169,11 +232,12 @@ export default function Dashboard() {
                         <th>{t("Status")}</th>
                         <th>{t("Candidates")}</th>
                         <th>{t("Votes")}</th>
+                        <th>Start</th>
                         <th>{t("EndDate")}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {elections.map((election) => (
+                      {withDerivedStatus.map((election) => (
                         <tr
                           key={election.id}
                           style={{ cursor: "pointer" }}
@@ -182,12 +246,11 @@ export default function Dashboard() {
                           <td>
                             <strong>{election.title}</strong>
                           </td>
-                          <td>{getStatusBadge(election.status)}</td>
+                          <td>{getStatusBadge(election._derivedStatus)}</td>
                           <td>{election.candidate_count}</td>
-                          <td>{election.total_votes}</td>
-                          <td>
-                            {new Date(election.end_time).toLocaleDateString()}
-                          </td>
+                          <td>{parseInt(election.total_votes || 0).toLocaleString()}</td>
+                          <td>{new Date(election.start_time).toLocaleDateString()}</td>
+                          <td>{new Date(election.end_time).toLocaleDateString()}</td>
                         </tr>
                       ))}
                     </tbody>

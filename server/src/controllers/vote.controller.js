@@ -4,6 +4,7 @@ import {
   checkUserVote,
   getTotalVotes,
   verifyVoteByHash,
+  getElectionWinner,
   // castVote, // Moving to worker
 } from "../services/vote.service.js";
 import { generateOTP, verifyOTP } from "../services/otp.service.js";
@@ -170,7 +171,7 @@ export const handleGetResults = asyncHandler(async (req, res) => {
 
   // Get election to check status
   const { pool } = await import("../db/db.js");
-  const electionRes = await pool.query("SELECT status FROM elections WHERE id = $1", [req.params.electionId]);
+  const electionRes = await pool.query("SELECT status, results_published FROM elections WHERE id = $1", [req.params.electionId]);
   const election = electionRes.rows[0];
 
   if (!election) {
@@ -181,16 +182,22 @@ export const handleGetResults = asyncHandler(async (req, res) => {
   const userRes = await pool.query("SELECT role FROM users WHERE id = $1", [req.user.id]);
   const userRole = userRes.rows[0]?.role || req.user.role;
 
-  // Voters can only view results if results are published or election is completed
+  // Voters can see results if: results_published OR election is completed
   const resultsPublished = election.results_published || false;
-  if (userRole === "voter" && !resultsPublished && election.status !== "completed") {
+  const isCompleted = election.status === "completed";
+  if (userRole === "voter" && !resultsPublished && !isCompleted) {
     throw new ApiError(403, "Results are not yet available for this election");
   }
 
+  // Include winner data for completed elections
+  let winner = null;
+  if (isCompleted || resultsPublished) {
+    winner = await getElectionWinner(req.params.electionId);
+  }
 
   return successResponse(
     res,
-    { results: resultData, totalVotes },
+    { results: resultData, totalVotes, winner, isCompleted },
     "Results fetched successfully",
     200,
   );

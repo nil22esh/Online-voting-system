@@ -9,6 +9,7 @@ import {
 import Sidebar from "../../components/Sidebar";
 import ConfirmModal from "../../components/ConfirmModal";
 import CustomDropdown from "../../components/CustomDropdown";
+import { computeElectionStatus } from "../../utils/electionStatus";
 import "./Admin.css";
 
 export default function ManageElections() {
@@ -88,7 +89,16 @@ export default function ManageElections() {
     }
   };
 
-  const getStatusBadge = (status) => <span className={`badge badge-${status}`}>{status}</span>;
+  const getStatusBadge = (election) => {
+    const status = computeElectionStatus(election);
+    const labels = {
+      active: "🟢 Active",
+      upcoming: "🔵 Upcoming",
+      completed: "⚫ Ended",
+      cancelled: "🔴 Cancelled",
+    };
+    return <span className={`badge badge-${status}`}>{labels[status] || status}</span>;
+  };
 
   return (
     <div className="layout">
@@ -128,7 +138,7 @@ export default function ManageElections() {
                 {elections.map((el) => (
                   <tr key={el.id}>
                     <td><strong>{el.title}</strong></td>
-                    <td>{getStatusBadge(el.status)}</td>
+                    <td>{getStatusBadge(el)}</td>
                     <td>{new Date(el.start_time).toLocaleString()}</td>
                     <td>{new Date(el.end_time).toLocaleString()}</td>
                     <td>{el.candidate_count}</td>
@@ -150,6 +160,21 @@ export default function ManageElections() {
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
               <h2 className="modal-title">{editingId ? "Edit Election" : "Create Election"}</h2>
+              
+              {/* Auto-status note */}
+              <div style={{
+                background: "rgba(99,102,241,0.06)",
+                border: "1px solid rgba(99,102,241,0.2)",
+                borderRadius: "var(--radius-md)",
+                padding: "0.75rem 1rem",
+                marginBottom: "var(--space-lg)",
+                fontSize: "0.8125rem",
+                color: "var(--text-secondary)",
+              }}>
+                ⚙️ <strong style={{ color: "var(--accent-primary)" }}>Status is auto-managed</strong> — 
+                the system automatically transitions elections between <em>Upcoming → Active → Ended</em> based on start &amp; end dates.
+              </div>
+
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label className="form-label">Title</label>
@@ -171,16 +196,16 @@ export default function ManageElections() {
                 </div>
                 {editingId && (
                   <div className="form-group">
-                    <label className="form-label">Status</label>
-                    <CustomDropdown 
-                      name="status" 
-                      value={formData.status} 
+                    <label className="form-label">Override Status <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(admin only)</span></label>
+                    <CustomDropdown
+                      name="status"
+                      value={formData.status}
                       onChange={handleChange}
                       options={[
-                        { value: "upcoming", label: "Upcoming" },
-                        { value: "active", label: "Active" },
-                        { value: "completed", label: "Completed" },
-                        { value: "cancelled", label: "Cancelled" }
+                        { value: "upcoming", label: "🔵 Upcoming (auto)" },
+                        { value: "active", label: "🟢 Active (auto)" },
+                        { value: "completed", label: "⚫ Ended (auto)" },
+                        { value: "cancelled", label: "🔴 Cancelled" },
                       ]}
                     />
                   </div>

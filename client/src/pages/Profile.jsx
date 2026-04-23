@@ -81,7 +81,8 @@ export default function Profile() {
                 fontWeight: "600"
               }}
             >
-               <span className="live-dot" style={{ margin: 0 }}></span> {t("Active")} - Fully Verified
+               <span className="live-dot" style={{ margin: 0 }}></span> {user.is_active ? "Active" : "Inactive"} -{" "}
+  {user.is_verified ? "Fully Verified" : "Not Verified"}
             </div>
             
             <p className="mt-md" style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: "1.6" }}>
