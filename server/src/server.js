@@ -11,11 +11,10 @@ import { updateElectionStatuses } from "./services/election.service.js";
 // Load environment variables
 dotenv.config();
 
-co /
-  nsole.log("ENV CHECK:-----", {
-    DB: process.env.DATABASE_URL,
-    REDIS: process.env.REDIS_URL,
-  });
+// console.log("ENV CHECK:-----", {
+//   DB: process.env.DATABASE_URL,
+//   REDIS: process.env.REDIS_URL,
+// });
 const port = process.env.PORT || 8080;
 const env = process.env.ENVIRONMENT || "development";
 
