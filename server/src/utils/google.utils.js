@@ -4,12 +4,10 @@ import config from "../config/config.js";
 const oauth2Client = new OAuth2Client(
   config.google.clientId,
   config.google.clientSecret,
-  config.google.callbackUrl
+  config.google.callbackUrl,
 );
 
-/**
- * Generate the Google OAuth consent screen URL
- */
+// Generate Google OAuth consent screen URL
 export const getGoogleAuthUrl = () => {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
@@ -21,23 +19,17 @@ export const getGoogleAuthUrl = () => {
   });
 };
 
-/**
- * Exchange authorization code for Google tokens
- * @param {string} code - The authorization code from Google callback
- */
+// Exchange authorization code for Google tokens
 export const exchangeCodeForTokens = async (code) => {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
   return tokens;
 };
 
-/**
- * Get the authenticated user's Google profile
- * @param {string} accessToken - Google access token
- */
+// Get authenticated user's Google profile
 export const getGoogleProfile = async (accessToken) => {
   const response = await fetch(
-    `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`
+    `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`,
   );
 
   if (!response.ok) {

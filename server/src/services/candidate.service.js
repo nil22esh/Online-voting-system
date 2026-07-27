@@ -1,22 +1,20 @@
 import { pool } from "../db/db.js";
 
-/**
- * Add a candidate to an election
- */
+// Add candidate to election
 export const addCandidate = async (
-  name, 
-  partyName, 
-  partySymbol, 
-  age, 
-  gender, 
-  education, 
-  profession, 
-  experienceYears, 
-  bio, 
-  manifesto, 
-  socialLinks, 
-  photoUrl, 
-  electionId
+  name,
+  partyName,
+  partySymbol,
+  age,
+  gender,
+  education,
+  profession,
+  experienceYears,
+  bio,
+  manifesto,
+  socialLinks,
+  photoUrl,
+  electionId,
 ) => {
   const query = `
     INSERT INTO candidates (
@@ -28,26 +26,24 @@ export const addCandidate = async (
     RETURNING *
   `;
   const result = await pool.query(query, [
-    name, 
-    partyName, 
-    partySymbol, 
-    age || null, 
-    gender, 
-    education, 
-    profession, 
-    experienceYears, 
-    bio, 
-    JSON.stringify(manifesto || []), 
-    JSON.stringify(socialLinks || {}), 
-    photoUrl, 
-    electionId
+    name,
+    partyName,
+    partySymbol,
+    age || null,
+    gender,
+    education,
+    profession,
+    experienceYears,
+    bio,
+    JSON.stringify(manifesto || []),
+    JSON.stringify(socialLinks || {}),
+    photoUrl,
+    electionId,
   ]);
   return result.rows[0];
 };
 
-/**
- * Get all candidates for an election with vote counts
- */
+// Get all candidates for election with vote counts
 export const getCandidatesByElection = async (electionId) => {
   const query = `
     SELECT 
@@ -62,32 +58,28 @@ export const getCandidatesByElection = async (electionId) => {
   return result.rows;
 };
 
-/**
- * Get candidate by ID
- */
+// Get candidate by ID
 export const getCandidateById = async (id) => {
   const query = `SELECT * FROM candidates WHERE id = $1`;
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
 
-/**
- * Update a candidate
- */
+// Update candidate details
 export const updateCandidate = async (
-  id, 
-  name, 
-  partyName, 
-  partySymbol, 
-  age, 
-  gender, 
-  education, 
-  profession, 
-  experienceYears, 
-  bio, 
-  manifesto, 
-  socialLinks, 
-  photoUrl
+  id,
+  name,
+  partyName,
+  partySymbol,
+  age,
+  gender,
+  education,
+  profession,
+  experienceYears,
+  bio,
+  manifesto,
+  socialLinks,
+  photoUrl,
 ) => {
   const query = `
     UPDATE candidates 
@@ -108,26 +100,24 @@ export const updateCandidate = async (
     RETURNING *
   `;
   const result = await pool.query(query, [
-    name, 
-    partyName, 
-    partySymbol, 
-    age || null, 
-    gender, 
-    education, 
-    profession, 
-    experienceYears, 
-    bio, 
-    JSON.stringify(manifesto || []), 
-    JSON.stringify(socialLinks || {}), 
-    photoUrl, 
-    id
+    name,
+    partyName,
+    partySymbol,
+    age || null,
+    gender,
+    education,
+    profession,
+    experienceYears,
+    bio,
+    JSON.stringify(manifesto || []),
+    JSON.stringify(socialLinks || {}),
+    photoUrl,
+    id,
   ]);
   return result.rows[0];
 };
 
-/**
- * Delete a candidate
- */
+// Delete candidate from election
 export const deleteCandidate = async (id) => {
   const query = `DELETE FROM candidates WHERE id = $1 RETURNING id`;
   const result = await pool.query(query, [id]);

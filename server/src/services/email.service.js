@@ -2,9 +2,7 @@ import nodemailer from "nodemailer";
 import config from "../config/config.js";
 import logger from "../utils/logger.js";
 
-/**
- * Configure Nodemailer Transporter
- */
+// Configure Nodemailer transporter
 const transporter = nodemailer.createTransport({
   host: config.smtp.host,
   port: config.smtp.port,
@@ -15,9 +13,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * Verify transporter connection
- */
+// Verify SMTP connection
 transporter.verify((error, success) => {
   if (error) {
     logger.error(`SMTP Connection Error: ${error.message}`);
@@ -26,9 +22,7 @@ transporter.verify((error, success) => {
   }
 });
 
-/**
- * Generic function to send email
- */
+// Send email with subject and content
 const sendEmail = async (options) => {
   const mailOptions = {
     from: config.smtp.from,
@@ -48,9 +42,7 @@ const sendEmail = async (options) => {
   }
 };
 
-/**
- * Shared base layout wrapper for all emails
- */
+// Email base template with logo and footer
 const baseTemplate = (content, accentColor = "#6c63ff") => `
 <!DOCTYPE html>
 <html lang="en">
@@ -112,32 +104,25 @@ const baseTemplate = (content, accentColor = "#6c63ff") => `
 </html>
 `;
 
-/**
- * Reusable greeting block
- */
+// Greeting with user name
 const greeting = (name) => `
   <p style="margin:0 0 20px;font-size:16px;color:#94a3b8;">
     Hello, <strong style="color:#e2e8f0;">${name}</strong> 👋
   </p>
 `;
 
-/**
- * Reusable CTA button
- */
+// CTA button styled for email
 const ctaButton = (href, label, color = "#6c63ff") => `
   <div style="text-align:center;margin:32px 0;">
     <a href="${href}" style="display:inline-block;background:linear-gradient(135deg,${color},#a78bfa);color:#ffffff;padding:14px 36px;text-decoration:none;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(108,99,255,0.4);">${label} &rarr;</a>
   </div>
 `;
 
-/**
- * Reusable divider
- */
-const divider = () => `<hr style="border:none;border-top:1px solid #2a2a3e;margin:28px 0;" />`;
+// Divider line for email template
+const divider = () =>
+  `<hr style="border:none;border-top:1px solid #2a2a3e;margin:28px 0;" />`;
 
-/**
- * Send Welcome Email on Registration
- */
+// Send welcome email on registration
 export const sendWelcomeEmail = async (user) => {
   const subject = "🎉 Welcome to Online Voting System!";
   const message = `Hello ${user.name},\n\nWelcome to the Online Voting System. Your account has been successfully created.\n\nBest regards,\nThe OVS Team`;
@@ -182,9 +167,7 @@ export const sendWelcomeEmail = async (user) => {
   return await sendEmail({ email: user.email, subject, message, html });
 };
 
-/**
- * Send Verification Email on Registration
- */
+// Send email verification token to user
 export const sendVerificationEmail = async (user, token) => {
   const verificationLink = `${config.frontendUrl}/verify-email?token=${token}`;
   const subject = "✅ Verify Your Account - Online Voting System";
@@ -215,9 +198,7 @@ export const sendVerificationEmail = async (user, token) => {
   return await sendEmail({ email: user.email, subject, message, html });
 };
 
-/**
- * Send OTP Email for Voting
- */
+// Send OTP email for voting verification
 export const sendOTPEmail = async (user, otpCode) => {
   const subject = "🔐 Your Voting OTP Code";
   const message = `Your OTP for voting verification is: ${otpCode}. This code is valid for 5 minutes.`;
@@ -227,7 +208,7 @@ export const sendOTPEmail = async (user, otpCode) => {
   const digitBoxes = otpDigits
     .map(
       (d) =>
-        `<span style="display:inline-block;width:44px;height:54px;line-height:54px;background:#0f0f1a;border:2px solid #6c63ff;border-radius:10px;font-size:26px;font-weight:800;color:#a78bfa;text-align:center;margin:0 4px;font-family:'Courier New',monospace;">${d}</span>`
+        `<span style="display:inline-block;width:44px;height:54px;line-height:54px;background:#0f0f1a;border:2px solid #6c63ff;border-radius:10px;font-size:26px;font-weight:800;color:#a78bfa;text-align:center;margin:0 4px;font-family:'Courier New',monospace;">${d}</span>`,
     )
     .join("");
 
@@ -261,9 +242,7 @@ export const sendOTPEmail = async (user, otpCode) => {
   return await sendEmail({ email: user.email, subject, message, html });
 };
 
-/**
- * Send Vote Confirmation Email
- */
+// Send vote confirmation email
 export const sendVoteConfirmationEmail = async (user, electionName) => {
   const subject = "🗳️ Vote Cast Successfully!";
   const message = `Hello ${user.name},\n\nYour vote for "${electionName}" has been successfully cast and recorded.\n\nThank you for participating!`;

@@ -1,24 +1,19 @@
 import rateLimit from "express-rate-limit";
 
-/**
- * Rate limiter for authentication routes
- * 10 requests per 15 minutes per IP
- */
+// Rate limit for auth attempts (30 per 15 minutes)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30,
   message: {
     success: false,
-    message: "Too many authentication attempts. Please try again after 15 minutes.",
+    message:
+      "Too many authentication attempts. Please try again after 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-/**
- * Rate limiter for vote routes
- * 20 requests per minute per IP
- */
+// Rate limit for voting (20 per minute)
 export const voteLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 20,
@@ -30,10 +25,7 @@ export const voteLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-/**
- * General API rate limiter
- * 100 requests per minute per IP
- */
+// General API rate limit (100 per minute)
 export const generalLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100,

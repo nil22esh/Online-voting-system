@@ -1,44 +1,26 @@
 import jwt from "jsonwebtoken";
 import config from "../config/config.js";
 
-/**
- * Generate JWT access token (short-lived: 15 min)
- * @param {Object} payload - User data to encode
- * @returns {string} JWT token
- */
+// Generate short-lived JWT access token
 export const generateAccessToken = (payload) => {
   return jwt.sign(payload, config.jwt.secret, {
     expiresIn: config.jwt.accessExpiry,
   });
 };
 
-/**
- * Generate JWT refresh token (long-lived: 7 days)
- * @param {Object} payload - User data to encode
- * @returns {string} JWT token
- */
+// Generate long-lived JWT refresh token
 export const generateRefreshToken = (payload) => {
   return jwt.sign(payload, config.jwt.refreshSecret, {
     expiresIn: config.jwt.refreshExpiry,
   });
 };
 
-/**
- * Verify a JWT token
- * @param {string} token - Token to verify
- * @param {string} secret - Secret key to verify against
- * @returns {Object} Decoded token payload
- */
+// Verify JWT token signature and return payload
 export const verifyToken = (token, secret) => {
   return jwt.verify(token, secret);
 };
 
-/**
- * Set authentication cookies on the response
- * @param {Object} res - Express response object
- * @param {string} accessToken - JWT access token
- * @param {string} refreshToken - JWT refresh token
- */
+// Set authentication cookies on response
 export const setAuthCookies = (res, accessToken, refreshToken) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: config.cookies.httpOnly,
@@ -56,10 +38,7 @@ export const setAuthCookies = (res, accessToken, refreshToken) => {
   });
 };
 
-/**
- * Clear authentication cookies
- * @param {Object} res - Express response object
- */
+// Clear authentication cookies
 export const clearAuthCookies = (res) => {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken", { path: "/api/v1/auth/refresh-token" });

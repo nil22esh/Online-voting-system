@@ -2,9 +2,7 @@ import { pool } from "../db/db.js";
 import { generateVoteHash } from "../utils/hash.utils.js";
 import logger from "../utils/logger.js";
 
-/**
- * Cast a vote (with transaction for concurrency safety)
- */
+// Cast vote with transaction for concurrency safety
 export const castVote = async (
   userId,
   electionId,
@@ -90,9 +88,7 @@ export const castVote = async (
   }
 };
 
-/**
- * Get vote results for an election (aggregated by candidate)
- */
+// Get vote results for election aggregated by candidate
 export const getElectionResults = async (electionId) => {
   const query = `
     SELECT 
@@ -111,9 +107,7 @@ export const getElectionResults = async (electionId) => {
   return result.rows;
 };
 
-/**
- * Verify a vote by its hash
- */
+// Verify vote by blockchain hash
 export const verifyVoteByHash = async (hash) => {
   const query = `
     SELECT 
@@ -128,9 +122,7 @@ export const verifyVoteByHash = async (hash) => {
   return result.rows[0];
 };
 
-/**
- * Check if a user has already voted in an election
- */
+// Check if user already voted in election
 export const checkUserVote = async (userId, electionId) => {
   const query = `
     SELECT v.id, v.candidate_id, c.name as candidate_name
@@ -142,19 +134,14 @@ export const checkUserVote = async (userId, electionId) => {
   return result.rows[0];
 };
 
-/**
- * Get total vote count for an election
- */
+// Get total vote count for election
 export const getTotalVotes = async (electionId) => {
   const query = `SELECT COUNT(*) as total FROM votes WHERE election_id = $1`;
   const result = await pool.query(query, [electionId]);
   return parseInt(result.rows[0].total);
 };
 
-/**
- * Get the winner(s) of a completed election
- * Returns array — multiple entries if there is a tie
- */
+// Get election winner(s) including ties
 export const getElectionWinner = async (electionId) => {
   const query = `
     WITH vote_counts AS (

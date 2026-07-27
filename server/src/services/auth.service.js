@@ -1,13 +1,6 @@
 // Import PostgreSQL connection pool
 import { pool } from "../db/db.js";
 
-// =============================================
-// USER OPERATIONS
-// =============================================
-
-/**
- * Create a new user in the database
- */
 export const createUser = async (
   name,
   email,
@@ -46,9 +39,7 @@ export const createUser = async (
   }
 };
 
-/**
- * Find user by verification token
- */
+// Find user by verification token
 export const findUserByVerificationToken = async (token) => {
   const query = `
     SELECT id, name, email, is_verified 
@@ -60,9 +51,7 @@ export const findUserByVerificationToken = async (token) => {
   return result.rows[0];
 };
 
-/**
- * Update user verification status
- */
+// Update user verification status
 export const updateUserVerificationStatus = async (userId) => {
   const query = `
     UPDATE users 
@@ -75,9 +64,7 @@ export const updateUserVerificationStatus = async (userId) => {
   return result.rows[0];
 };
 
-/**
- * Find user by email (includes password for auth comparison)
- */
+// Find user by email (includes password)
 export const findUserByEmail = async (email) => {
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -91,9 +78,7 @@ export const findUserByEmail = async (email) => {
   return result.rows[0];
 };
 
-/**
- * Find user by ID (excludes password)
- */
+// Get user by ID (excludes password)
 export const findUserById = async (id) => {
   const query = `
     SELECT id, name, email, role, phone_number, aadhar_number, is_active, is_verified, created_at 
@@ -105,9 +90,7 @@ export const findUserById = async (id) => {
   return result.rows[0];
 };
 
-/**
- * Get all users (admin only)
- */
+// Get all users (admin only)
 export const getAllUsers = async () => {
   const query = `
     SELECT id, name, email, role, is_active, is_verified, created_at 
@@ -119,13 +102,7 @@ export const getAllUsers = async () => {
   return result.rows;
 };
 
-// =============================================
-// GOOGLE OAUTH OPERATIONS
-// =============================================
-
-/**
- * Find user by Google ID
- */
+// Get user by Google ID
 export const findUserByGoogleId = async (googleId) => {
   const query = `
     SELECT id, name, email, role, phone_number, aadhar_number, 
@@ -137,9 +114,7 @@ export const findUserByGoogleId = async (googleId) => {
   return result.rows[0];
 };
 
-/**
- * Create a new user via Google OAuth (no password/Aadhar required)
- */
+// Create new user from Google OAuth
 export const createGoogleUser = async (name, email, googleId, avatarUrl) => {
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -151,7 +126,12 @@ export const createGoogleUser = async (name, email, googleId, avatarUrl) => {
   `;
 
   try {
-    const result = await pool.query(query, [name, normalizedEmail, googleId, avatarUrl]);
+    const result = await pool.query(query, [
+      name,
+      normalizedEmail,
+      googleId,
+      avatarUrl,
+    ]);
     return result.rows[0];
   } catch (error) {
     if (error.code === "23505") {
@@ -161,9 +141,7 @@ export const createGoogleUser = async (name, email, googleId, avatarUrl) => {
   }
 };
 
-/**
- * Link a Google account to an existing user (matched by email)
- */
+// Link Google account to existing user
 export const linkGoogleAccount = async (userId, googleId, avatarUrl) => {
   const query = `
     UPDATE users
@@ -176,13 +154,7 @@ export const linkGoogleAccount = async (userId, googleId, avatarUrl) => {
   return result.rows[0];
 };
 
-// =============================================
-// REFRESH TOKEN OPERATIONS
-// =============================================
-
-/**
- * Save a refresh token to the database
- */
+// Save refresh token to database
 export const saveRefreshToken = async (userId, token, expiresAt) => {
   const query = `
     INSERT INTO refresh_tokens (user_id, token, expires_at)
@@ -194,9 +166,7 @@ export const saveRefreshToken = async (userId, token, expiresAt) => {
   return result.rows[0];
 };
 
-/**
- * Find a refresh token in the database
- */
+// Find refresh token in database
 export const findRefreshToken = async (token) => {
   const query = `
     SELECT rt.*, u.id as uid, u.name, u.email, u.role, u.phone_number, u.aadhar_number, u.is_active, u.is_verified
@@ -209,17 +179,13 @@ export const findRefreshToken = async (token) => {
   return result.rows[0];
 };
 
-/**
- * Delete a refresh token (logout)
- */
+// Delete refresh token (logout)
 export const deleteRefreshToken = async (token) => {
   const query = `DELETE FROM refresh_tokens WHERE token = $1`;
   await pool.query(query, [token]);
 };
 
-/**
- * Delete all refresh tokens for a user (force logout all sessions)
- */
+// Delete all user refresh tokens (force logout all sessions)
 export const deleteAllUserRefreshTokens = async (userId) => {
   const query = `DELETE FROM refresh_tokens WHERE user_id = $1`;
   await pool.query(query, [userId]);

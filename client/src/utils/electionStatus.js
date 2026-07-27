@@ -1,15 +1,4 @@
-/**
- * Compute the derived status of an election based on its start/end dates.
- * This mirrors the server-side logic so the UI is always up-to-date
- * even before the next DB scheduler tick fires.
- *
- * Priority:
- *   1. If the official DB status is 'cancelled' — keep cancelled.
- *   2. Otherwise derive from dates:
- *      - now < start_time  => 'upcoming'
- *      - start_time <= now <= end_time => 'active'
- *      - now > end_time => 'completed'
- */
+// Compute election status based on dates (upcoming/active/completed/cancelled)
 export function computeElectionStatus(election) {
   if (!election) return "upcoming";
   if (election.status === "cancelled") return "cancelled";
@@ -23,9 +12,7 @@ export function computeElectionStatus(election) {
   return "completed";
 }
 
-/**
- * Returns a human-readable time string for a countdown or elapsed time.
- */
+// Format countdown time in human-readable format
 export function getCountdown(targetDate) {
   const diff = new Date(targetDate) - new Date();
   if (diff <= 0) return null;
@@ -38,7 +25,7 @@ export function getCountdown(targetDate) {
   let parts = [];
   if (days > 0) parts.push(`${days}d`);
   parts.push(
-    `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+    `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`,
   );
   return parts.join(" ");
 }

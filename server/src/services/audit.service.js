@@ -1,9 +1,14 @@
 import { pool } from "../db/db.js";
 
-/**
- * Create an audit log entry
- */
-export const createAuditLog = async (userId, action, entity, entityId, details, ipAddress) => {
+// Create audit log entry
+export const createAuditLog = async (
+  userId,
+  action,
+  entity,
+  entityId,
+  details,
+  ipAddress,
+) => {
   const query = `
     INSERT INTO audit_logs (user_id, action, entity, entity_id, details, ip_address)
     VALUES ($1, $2, $3, $4, $5, $6)
@@ -20,9 +25,7 @@ export const createAuditLog = async (userId, action, entity, entityId, details, 
   return result.rows[0];
 };
 
-/**
- * Get audit logs with pagination and filtering
- */
+// Get audit logs with pagination and filtering
 export const getAuditLogs = async (page = 1, limit = 20, filters = {}) => {
   const offset = (page - 1) * limit;
   let whereClause = "";

@@ -3,7 +3,7 @@ import app from "./app.js";
 import dotenv from "dotenv";
 import logger from "./utils/logger.js";
 import connectDB from "./db/db.js";
-import redisClient, { connectRedis } from "./config/redis.js";
+// import redisClient, { connectRedis } from "./config/redis.js";
 import { initializeSocket } from "./config/socket.js";
 import { voteWorker } from "./queues/vote.queue.js"; // Initialize worker
 import { updateElectionStatuses } from "./services/election.service.js";
@@ -31,7 +31,7 @@ app.set("io", io);
 const startServer = async () => {
   try {
     await connectDB();
-    await connectRedis();
+    // await connectRedis();
 
     // Use server.listen instead of app.listen (for Socket.IO)
     server.listen(port, () => {
@@ -45,7 +45,7 @@ const startServer = async () => {
       try {
         await updateElectionStatuses();
         // Invalidate the elections cache so fresh data is served
-        await redisClient.del("elections:all");
+        // await redisClient.del("elections:all");
         logger.info("[Scheduler] Election statuses updated");
       } catch (err) {
         logger.error("[Scheduler] Failed to update election statuses:", err);

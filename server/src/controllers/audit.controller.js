@@ -2,11 +2,7 @@ import asyncHandler from "../middlewares/asyncHandler.middleware.js";
 import { getAuditLogs } from "../services/audit.service.js";
 import { successResponse } from "../utils/response.js";
 
-/**
- * Get audit logs (paginated)
- * GET /api/v1/audit
- * Access: admin only
- */
+// Fetch paginated audit logs with filtering
 export const handleGetAuditLogs = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;

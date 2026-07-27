@@ -1,8 +1,6 @@
 import { pool } from "../db/db.js";
 
-/**
- * Get all users except password
- */
+// Get all users without password
 export const getAllUsers = async () => {
   const query = `
     SELECT id, name, email, role, is_active, is_verified, created_at, updated_at
@@ -13,9 +11,7 @@ export const getAllUsers = async () => {
   return result.rows;
 };
 
-/**
- * Update user role
- */
+// Update user role
 export const updateUserRole = async (userId, role) => {
   const query = `
     UPDATE users 
@@ -27,9 +23,7 @@ export const updateUserRole = async (userId, role) => {
   return result.rows[0];
 };
 
-/**
- * Update user active status
- */
+// Update user active status
 export const updateUserStatus = async (userId, isActive) => {
   const query = `
     UPDATE users 

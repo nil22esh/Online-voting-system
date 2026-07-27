@@ -3,11 +3,7 @@ import { processMessage } from "../services/chat.service.js";
 import { successResponse } from "../utils/response.js";
 import ApiError from "../utils/ApiError.js";
 
-/**
- * Handle a chat message
- * POST /api/v1/chat
- * Access: all authenticated users
- */
+// Process chat message through AI service
 export const handleChat = asyncHandler(async (req, res) => {
   const { message } = req.body;
 

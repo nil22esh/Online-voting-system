@@ -15,17 +15,16 @@ import ApiError from "../utils/ApiError.js";
 import { sendOTPEmail } from "../services/email.service.js";
 import { findUserById } from "../services/auth.service.js";
 
-/**
- * Request an OTP for voting verification
- * POST /api/v1/votes/request-otp
- * Access: voter only
- */
+// Request OTP for voting verification
 export const handleRequestOTP = asyncHandler(async (req, res) => {
   const { phoneNumber } = req.body;
-  
+
   // Get user details to verify phone number and verification status
   const { pool } = await import("../db/db.js");
-  const userRes = await pool.query("SELECT phone_number, is_verified FROM users WHERE id = $1", [req.user.id]);
+  const userRes = await pool.query(
+    "SELECT phone_number, is_verified FROM users WHERE id = $1",
+    [req.user.id],
+  );
   const userFromDb = userRes.rows[0];
 
   if (!userFromDb) {
@@ -34,54 +33,65 @@ export const handleRequestOTP = asyncHandler(async (req, res) => {
 
   // 1. Check if user is verified
   if (!userFromDb.is_verified) {
-    throw new ApiError(403, "Your email is not verified. Please verify your email to participate in voting.");
+    throw new ApiError(
+      403,
+      "Your email is not verified. Please verify your email to participate in voting.",
+    );
   }
 
   // 2. Verify phone number
   if (phoneNumber !== userFromDb.phone_number) {
-    throw new ApiError(400, "The phone number entered does not match our registration records");
+    throw new ApiError(
+      400,
+      "The phone number entered does not match our registration records",
+    );
   }
 
   const code = await generateOTP(req.user.id);
-  
+
   // Get full user details to send email
   const user = await findUserById(req.user.id);
-  
+
   if (!user || !user.email) {
     throw new ApiError(404, "User email not found for OTP delivery");
   }
 
   // Send OTP Email (Non-blocking)
-  sendOTPEmail(user, code).catch(err => console.error("Failed to send OTP email:", err));
+  sendOTPEmail(user, code).catch((err) =>
+    console.error("Failed to send OTP email:", err),
+  );
 
-  const maskedEmail = user.email.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => { 
-    return gp2 + gp3.replace(/./g, "*"); 
+  const maskedEmail = user.email.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => {
+    return gp2 + gp3.replace(/./g, "*");
   });
 
   return successResponse(
-    res, 
-    { message: `OTP sent to your registered email: ${maskedEmail}. Please check your inbox.` }, 
-    "OTP generated successfully", 
-    200
+    res,
+    {
+      message: `OTP sent to your registered email: ${maskedEmail}. Please check your inbox.`,
+    },
+    "OTP generated successfully",
+    200,
   );
 });
 
-
-/**
- * Cast a vote
- * POST /api/v1/votes
- * Access: voter only
- */
+// Submit vote for processing in queue
 export const handleCastVote = asyncHandler(async (req, res) => {
   const { election_id, candidate_id, otp_code } = req.body;
 
   // 1. Check if user is verified (fetch from DB for latest status)
   const { pool } = await import("../db/db.js");
-  const userRes = await pool.query("SELECT is_verified FROM users WHERE id = $1", [req.user.id]);
+  const userRes = await pool.query(
+    "SELECT is_verified FROM users WHERE id = $1",
+    [req.user.id],
+  );
   const userFromDb = userRes.rows[0];
 
   if (!userFromDb?.is_verified) {
-    throw new ApiError(403, "Your email is not verified. Please verify your email to participate in voting.");
+    throw new ApiError(
+      403,
+      "Your email is not verified. Please verify your email to participate in voting.",
+    );
   }
 
   // 2. Verify OTP
@@ -102,8 +112,9 @@ export const handleCastVote = asyncHandler(async (req, res) => {
   }
 
   try {
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const userAgent = req.headers['user-agent'];
+    const ipAddress =
+      req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const userAgent = req.headers["user-agent"];
 
     // 3. Prevent duplicate queue jobs for same user/election
     const jobId = `vote-${req.user.id}-${election_id}`;
@@ -113,19 +124,23 @@ export const handleCastVote = asyncHandler(async (req, res) => {
     }
 
     // 4. Add vote to queue for asynchronous processing
-    await voteQueue.add(jobId, {
-      userId: req.user.id,
-      electionId: election_id,
-      candidateId: candidate_id,
-      ipAddress,
-      userAgent
-    }, {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 1000,
+    await voteQueue.add(
+      jobId,
+      {
+        userId: req.user.id,
+        electionId: election_id,
+        candidateId: candidate_id,
+        ipAddress,
+        userAgent,
       },
-    });
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 1000,
+        },
+      },
+    );
 
     // 5. Audit log (initial submission)
 
@@ -138,17 +153,18 @@ export const handleCastVote = asyncHandler(async (req, res) => {
       ipAddress,
     );
 
-    return successResponse(res, null, "Your vote has been submitted and is being processed", 202);
+    return successResponse(
+      res,
+      null,
+      "Your vote has been submitted and is being processed",
+      202,
+    );
   } catch (error) {
     throw error;
   }
 });
 
-/**
- * Verify a vote by hash
- * GET /api/v1/votes/verify/:hash
- * Access: public
- */
+// Verify vote integrity using blockchain hash
 export const handleVerifyVote = asyncHandler(async (req, res) => {
   const { hash } = req.params;
   const vote = await verifyVoteByHash(hash);
@@ -160,18 +176,17 @@ export const handleVerifyVote = asyncHandler(async (req, res) => {
   return successResponse(res, vote, "Vote integrity verified", 200);
 });
 
-/**
- * Get election results
- * GET /api/v1/votes/results/:electionId
- * Access: all authenticated users
- */
+// Get election results (admin sees all, voters see based on status)
 export const handleGetResults = asyncHandler(async (req, res) => {
   const resultData = await getElectionResults(req.params.electionId);
   const totalVotes = await getTotalVotes(req.params.electionId);
 
   // Get election to check status
   const { pool } = await import("../db/db.js");
-  const electionRes = await pool.query("SELECT status, results_published FROM elections WHERE id = $1", [req.params.electionId]);
+  const electionRes = await pool.query(
+    "SELECT status, results_published FROM elections WHERE id = $1",
+    [req.params.electionId],
+  );
   const election = electionRes.rows[0];
 
   if (!election) {
@@ -179,7 +194,9 @@ export const handleGetResults = asyncHandler(async (req, res) => {
   }
 
   // Get fresh user role from DB in case JWT is out of sync
-  const userRes = await pool.query("SELECT role FROM users WHERE id = $1", [req.user.id]);
+  const userRes = await pool.query("SELECT role FROM users WHERE id = $1", [
+    req.user.id,
+  ]);
   const userRole = userRes.rows[0]?.role || req.user.role;
 
   // Voters can see results if: results_published OR election is completed
@@ -203,11 +220,7 @@ export const handleGetResults = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * Check if user has voted in an election
- * GET /api/v1/votes/check/:electionId
- * Access: all authenticated users
- */
+// Check if user has voted in election (includes pending queue check)
 export const handleCheckVote = asyncHandler(async (req, res) => {
   const { id: userId } = req.user;
   const { electionId } = req.params;
@@ -217,7 +230,7 @@ export const handleCheckVote = asyncHandler(async (req, res) => {
   if (vote) {
     return successResponse(
       res,
-      { hasVoted: true, vote, status: 'confirmed' },
+      { hasVoted: true, vote, status: "confirmed" },
       "You have already voted",
       200,
     );
@@ -229,10 +242,14 @@ export const handleCheckVote = asyncHandler(async (req, res) => {
 
   if (job) {
     const state = await job.getState();
-    if (state !== 'failed') {
+    if (state !== "failed") {
       return successResponse(
         res,
-        { hasVoted: true, vote: { candidate_name: "Processing..." }, status: 'pending' },
+        {
+          hasVoted: true,
+          vote: { candidate_name: "Processing..." },
+          status: "pending",
+        },
         "Your vote is currently being processed",
         200,
       );
@@ -241,9 +258,8 @@ export const handleCheckVote = asyncHandler(async (req, res) => {
 
   return successResponse(
     res,
-    { hasVoted: false, vote: null, status: 'none' },
+    { hasVoted: false, vote: null, status: "none" },
     "You have not voted yet",
     200,
   );
 });
-

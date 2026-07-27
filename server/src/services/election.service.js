@@ -1,21 +1,33 @@
 import { pool } from "../db/db.js";
 
-/**
- * Create a new election
- */
-export const createElection = async (title, description, startTime, endTime, createdBy, isAnonymous = false, electionLevel = 'local') => {
+// Create new election
+export const createElection = async (
+  title,
+  description,
+  startTime,
+  endTime,
+  createdBy,
+  isAnonymous = false,
+  electionLevel = "local",
+) => {
   const query = `
     INSERT INTO elections (title, description, start_time, end_time, created_by, is_anonymous, election_level)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *
   `;
-  const result = await pool.query(query, [title, description, startTime, endTime, createdBy, isAnonymous, electionLevel]);
+  const result = await pool.query(query, [
+    title,
+    description,
+    startTime,
+    endTime,
+    createdBy,
+    isAnonymous,
+    electionLevel,
+  ]);
   return result.rows[0];
 };
 
-/**
- * Get all elections with creator info and candidate/vote counts
- */
+// Get all elections with creator info and vote counts
 export const getAllElections = async () => {
   const query = `
     SELECT 
@@ -31,9 +43,7 @@ export const getAllElections = async () => {
   return result.rows;
 };
 
-/**
- * Get election by ID with full details
- */
+// Get election by ID with full details
 export const getElectionById = async (id) => {
   const query = `
     SELECT 
@@ -49,32 +59,46 @@ export const getElectionById = async (id) => {
   return result.rows[0];
 };
 
-/**
- * Update an election
- */
-export const updateElection = async (id, title, description, startTime, endTime, status, isAnonymous, electionLevel, resultsPublished) => {
+// Update election details
+export const updateElection = async (
+  id,
+  title,
+  description,
+  startTime,
+  endTime,
+  status,
+  isAnonymous,
+  electionLevel,
+  resultsPublished,
+) => {
   const query = `
     UPDATE elections 
     SET title = $1, description = $2, start_time = $3, end_time = $4, status = $5, is_anonymous = $6, election_level = $7, results_published = $8
     WHERE id = $9
     RETURNING *
   `;
-  const result = await pool.query(query, [title, description, startTime, endTime, status, isAnonymous, electionLevel, resultsPublished, id]);
+  const result = await pool.query(query, [
+    title,
+    description,
+    startTime,
+    endTime,
+    status,
+    isAnonymous,
+    electionLevel,
+    resultsPublished,
+    id,
+  ]);
   return result.rows[0];
 };
 
-/**
- * Delete an election
- */
+// Delete election
 export const deleteElection = async (id) => {
   const query = `DELETE FROM elections WHERE id = $1 RETURNING id`;
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
 
-/**
- * Auto-update election statuses based on current time
- */
+// Auto-update election statuses based on current time
 export const updateElectionStatuses = async () => {
   // Activate elections whose start_time has passed
   await pool.query(`

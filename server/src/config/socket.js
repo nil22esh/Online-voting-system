@@ -5,11 +5,7 @@ import logger from "../utils/logger.js";
 
 let io;
 
-/**
- * Initialize Socket.IO server
- * @param {Object} httpServer - Node.js HTTP server instance
- * @returns {Object} Socket.IO server instance
- */
+// Initialize Socket.IO with CORS and authentication
 export const initializeSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
@@ -68,14 +64,10 @@ export const initializeSocket = (httpServer) => {
   return io;
 };
 
-/**
- * Get the current Socket.IO server instance
- * @returns {Object} Socket.IO server instance
- */
+// Get Socket.IO server instance
 export const getIO = () => {
   if (!io) {
     throw new Error("Socket.IO not initialized!");
   }
   return io;
 };
-

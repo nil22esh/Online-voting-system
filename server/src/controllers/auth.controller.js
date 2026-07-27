@@ -33,10 +33,7 @@ import {
 } from "../utils/jwt.utils.js";
 import config from "../config/config.js";
 
-/**
- * Register a new user
- * POST /api/v1/auth/register
- */
+// Register new user with email verification
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, phone_number, aadhar_number } = req.body;
   const role = "voter"; // Force voter role on self-registration
@@ -86,22 +83,19 @@ export const register = asyncHandler(async (req, res) => {
   setAuthCookies(res, accessToken, refreshToken);
 
   // 6. Send Verification Email (Non-blocking)
-  sendVerificationEmail(newUser, verificationToken).catch(err => 
-    console.error("Failed to send verification email:", err)
+  sendVerificationEmail(newUser, verificationToken).catch((err) =>
+    console.error("Failed to send verification email:", err),
   );
 
   return successResponse(
-    res, 
-    { ...newUser, is_verified: false }, 
-    "Registration successful. Please check your email to verify your account.", 
-    201
+    res,
+    { ...newUser, is_verified: false },
+    "Registration successful. Please check your email to verify your account.",
+    201,
   );
 });
 
-/**
- * Verify User Email
- * GET /api/v1/auth/verify-email/:token
- */
+// Verify user email with token
 export const verifyUserEmail = asyncHandler(async (req, res) => {
   const { token } = req.params;
 
@@ -123,13 +117,15 @@ export const verifyUserEmail = asyncHandler(async (req, res) => {
   await updateUserVerificationStatus(user.id);
 
   // In a real app, you might want to redirect to a frontend success page
-  return successResponse(res, null, "Email verified successfully! You can now participate in elections.", 200);
+  return successResponse(
+    res,
+    null,
+    "Email verified successfully! You can now participate in elections.",
+    200,
+  );
 });
 
-/**
- * Login user
- * POST /api/v1/auth/login
- */
+// Authenticate user with email and password
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -172,10 +168,7 @@ export const login = asyncHandler(async (req, res) => {
   return successResponse(res, user, "User logged in successfully", 200);
 });
 
-/**
- * Logout user
- * POST /api/v1/auth/logout
- */
+// Clear authentication tokens and logout
 export const logout = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
 
@@ -188,10 +181,7 @@ export const logout = asyncHandler(async (req, res) => {
   return successResponse(res, null, "Logged out successfully", 200);
 });
 
-/**
- * Refresh access token
- * POST /api/v1/auth/refresh-token
- */
+// Generate new access token using refresh token
 export const refreshAccessToken = asyncHandler(async (req, res) => {
   const oldRefreshToken = req.cookies?.refreshToken;
 
@@ -238,10 +228,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   return successResponse(res, null, "Token refreshed successfully", 200);
 });
 
-/**
- * Get current user profile
- * GET /api/v1/auth/me
- */
+// Retrieve current authenticated user profile
 export const getMe = asyncHandler(async (req, res) => {
   const user = await findUserById(req.user.id);
 
@@ -252,27 +239,19 @@ export const getMe = asyncHandler(async (req, res) => {
   return successResponse(res, user, "User profile fetched successfully", 200);
 });
 
-/**
- * Initiate Google OAuth flow
- * GET /api/v1/auth/google
- */
+// Initiate Google OAuth flow
 export const googleAuthRedirect = asyncHandler(async (req, res) => {
   const url = getGoogleAuthUrl();
   res.redirect(url);
 });
 
-/**
- * Handle Google OAuth callback
- * GET /api/v1/auth/google/callback
- */
+// Handle Google OAuth callback
 export const googleCallback = asyncHandler(async (req, res) => {
   const { code, error } = req.query;
 
   // User denied access or Google returned an error
   if (error || !code) {
-    return res.redirect(
-      `${config.frontendUrl}/login?error=google_auth_failed`
-    );
+    return res.redirect(`${config.frontendUrl}/login?error=google_auth_failed`);
   }
 
   // 1. Exchange code for tokens
@@ -284,9 +263,7 @@ export const googleCallback = asyncHandler(async (req, res) => {
   const { id: googleId, email, name, picture: avatarUrl } = profile;
 
   if (!email) {
-    return res.redirect(
-      `${config.frontendUrl}/login?error=google_no_email`
-    );
+    return res.redirect(`${config.frontendUrl}/login?error=google_no_email`);
   }
 
   // 3. Try to find existing user by google_id
@@ -308,7 +285,7 @@ export const googleCallback = asyncHandler(async (req, res) => {
   // Check if account is active
   if (!user.is_active) {
     return res.redirect(
-      `${config.frontendUrl}/login?error=account_deactivated`
+      `${config.frontendUrl}/login?error=account_deactivated`,
     );
   }
 
@@ -323,8 +300,7 @@ export const googleCallback = asyncHandler(async (req, res) => {
   setAuthCookies(res, accessToken, refreshToken);
 
   // 7. Redirect to dashboard (or complete-profile if Aadhar is missing)
-  const destination =
-    user.aadhar_number ? "/dashboard" : "/complete-profile";
+  const destination = user.aadhar_number ? "/dashboard" : "/complete-profile";
 
   return res.redirect(`${config.frontendUrl}${destination}`);
 });
