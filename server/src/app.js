@@ -61,8 +61,8 @@ app.use(morgan("dev"));
 
 // Diagnostic logger
 app.use((req, res, next) => {
-  console.log(`[DEBUG] Incoming Request: ${req.method} ${req.originalUrl}`);
-  console.log(`[DEBUG] Request Body:`, JSON.stringify(req.body, null, 2));
+  // console.log(`[DEBUG] Incoming Request: ${req.method} ${req.originalUrl}`);
+  // console.log(`[DEBUG] Request Body:`, JSON.stringify(req.body, null, 2));
   next();
 });
 

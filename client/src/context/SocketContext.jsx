@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 
@@ -9,39 +9,45 @@ export function SocketProvider({ children }) {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const newSocket = io({
-        withCredentials: true,
-        transports: ["websocket", "polling"],
+    if (!isAuthenticated) {
+      setSocket((currentSocket) => {
+        if (currentSocket) {
+          currentSocket.close();
+        }
+        return null;
       });
-
-      newSocket.on("connect", () => {
-        console.log("Socket connected:", newSocket.id);
-      });
-
-      newSocket.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason);
-      });
-
-      newSocket.on("connect_error", (err) => {
-        console.log("Socket connection error:", err.message);
-      });
-
-      setSocket(newSocket);
-
-      return () => {
-        newSocket.close();
-      };
-    } else {
-      if (socket) {
-        socket.close();
-        setSocket(null);
-      }
+      return;
     }
+
+    const newSocket = io({
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.log("Socket connection error:", err.message);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+      setSocket(null);
+    };
   }, [isAuthenticated]);
 
+  const value = useMemo(() => socket, [socket]);
+
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 }
 

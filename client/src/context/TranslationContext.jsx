@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { translations } from "../utils/translations";
 
 const TranslationContext = createContext(null);
@@ -14,19 +21,28 @@ export function TranslationProvider({ children }) {
     localStorage.setItem("vote_language", language);
   }, [language]);
 
-  const t = (key, params = {}) => {
-    let rawString = translations[language]?.[key] || translations["en"]?.[key] || key;
-    
-    // Simple interpolation for variables like {name}
-    Object.keys(params).forEach((paramKey) => {
-      rawString = rawString.replace(`{${paramKey}}`, params[paramKey]);
-    });
-    
-    return rawString;
-  };
+  const t = useCallback(
+    (key, params = {}) => {
+      let rawString =
+        translations[language]?.[key] || translations["en"]?.[key] || key;
+
+      // Simple interpolation for variables like {name}
+      Object.keys(params).forEach((paramKey) => {
+        rawString = rawString.replace(`{${paramKey}}`, params[paramKey]);
+      });
+
+      return rawString;
+    },
+    [language],
+  );
+
+  const value = useMemo(
+    () => ({ language, setLanguage, t }),
+    [language, setLanguage, t],
+  );
 
   return (
-    <TranslationContext.Provider value={{ language, setLanguage, t }}>
+    <TranslationContext.Provider value={value}>
       {children}
     </TranslationContext.Provider>
   );

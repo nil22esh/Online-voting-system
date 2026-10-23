@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/AuthContext";
 import "./Toast.css";
 
 export default function Toast() {
-  const { toast, setToast } = useAuth();
+  const { toast, setToast } = useToast();
 
   useEffect(() => {
     if (toast) {
